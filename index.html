@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Comprovante de Serviço</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    input, textarea { display: block; margin: 10px 0; width: 100%; padding: 8px; }
+    button { padding: 10px 20px; }
+  </style>
+</head>
+<body>
+  <h2>Formulário de Serviço</h2>
+  <form id="form">
+    <input type="text" name="cliente" placeholder="Cliente" required />
+    <input type="text" name="servico" placeholder="Serviço Executado" required />
+    <input type="number" name="valorHora" placeholder="Valor por Hora (R$)" required />
+    <input type="number" name="deslocamento" placeholder="Deslocamento (R$)" required />
+    <input type="time" name="horaEntrada" required />
+    <input type="time" name="horaSaida" required />
+    <input type="number" name="tempoAlmoco" placeholder="Tempo de Almoço (minutos)" required />
+    <button type="submit">Salvar e Imprimir</button>
+  </form>
+
+  <script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxVndBJrBO1dTNWxS6PU1AYSE1HT7sCRlvFNOfxbwRrVHRLeC6Qbd30jrbsXNrp6jFD/exec';
+
+    document.getElementById('form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const form = e.target;
+      const data = {
+        cliente: form.cliente.value,
+        servico: form.servico.value,
+        valorHora: form.valorHora.value,
+        deslocamento: form.deslocamento.value,
+        horaEntrada: form.horaEntrada.value,
+        horaSaida: form.horaSaida.value,
+        tempoAlmoco: form.tempoAlmoco.value
+      };
+
+      try {
+        const res = await fetch(scriptURL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        if (!res.ok) throw new Error('Erro ao salvar no Google Sheets');
+
+        const resposta = await res.json();
+        alert('Dados salvos com sucesso!');
+
+        // Abrir nova janela com o comprovante para imprimir
+        const comprovante = `
+          <html><body>
+          <h2>Comprovante de Serviço</h2>
+          <p><strong>Cliente:</strong> ${data.cliente}</p>
+          <p><strong>Serviço:</strong> ${data.servico}</p>
+          <p><strong>Valor por Hora:</strong> R$ ${data.valorHora}</p>
+          <p><strong>Deslocamento:</strong> R$ ${data.deslocamento}</p>
+          <p><strong>Hora Entrada:</strong> ${data.horaEntrada}</p>
+          <p><strong>Hora Saída:</strong> ${data.horaSaida}</p>
+          <p><strong>Tempo de Almoço:</strong> ${data.tempoAlmoco} min</p>
+          <script>window.print()</script>
+          </body></html>`;
+        const w = window.open('', '', 'width=800,height=600');
+        w.document.write(comprovante);
+        w.document.close();
+
+      } catch (error) {
+        alert('Erro ao enviar: ' + error.message);
+      }
+    });
+  </script>
+</body>
+</html>
