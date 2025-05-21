@@ -1,32 +1,185 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
-  <title>Enviar Observação</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Dados</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 4px;
+        }
+        button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        .btns {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+    </style>
 </head>
 <body>
-  <h1>Formulário de Observação</h1>
-  <textarea id="observacao" rows="4" cols="50"></textarea><br>
-  <button onclick="enviar()">Enviar</button>
+    <div class="container">
+        <h1>Cadastro de Dados</h1>
 
-  <script>
-    function enviar() {
-      const observacao = document.getElementById("observacao").value;
+        <label>ID</label>
+        <input type="text" id="Campo1">
 
-      fetch("https://script.google.com/macros/s/AKfycbw5C2DDei4_RuqVejT9aMJe6yHTe7Hv91phAWXN24Yu1XXwCPiITg-ZxNOTPEZhgfhn/exec", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ observacao })
-      })
-      .then(response => response.json())
-      .then(data => {
-        alert(data.mensagem);
-      })
-      .catch(error => {
-        console.error("Erro ao enviar:", error);
-      });
-    }
-  </script>
+        <label>Campo 2</label>
+        <input type="text" id="Campo2">
+
+        <label>Campo 3</label>
+        <input type="text" id="Campo3">
+
+        <label>Campo 4</label>
+        <input type="text" id="Campo4">
+
+        <label>Campo 5 (Data)</label>
+        <input type="date" id="Campo5">
+
+        <label>Campo 6 (Valor)</label>
+        <input type="text" id="Campo6">
+
+        <label>Campo 7</label>
+        <input type="text" id="Campo7">
+
+        <label>Campo 8</label>
+        <input type="text" id="Campo8">
+
+        <label>Campo 9</label>
+        <input type="text" id="Campo9">
+
+        <label>Campo 10</label>
+        <input type="text" id="Campo10">
+
+        <div class="btns">
+            <button onclick="limpar()">Limpar</button>
+            <button onclick="pesquisar()">Pesquisar</button>
+            <button onclick="salvar()">Salvar</button>
+            <button onclick="editar()">Editar</button>
+            <button onclick="excluir()">Excluir</button>
+        </div>
+
+        <div id="mensagem"></div>
+    </div>
+
+    <script>
+        const url = "https://script.google.com/macros/s/AKfycbyG0FcCb2_RAhpdjEuUc-3-tI5Y8f8EVrSrY9BZOiZJDKjMfmqqM6MlcbJDLuQtxnYx/exec";
+
+        function getCampos() {
+            return {
+                Campo1: document.getElementById('Campo1').value,
+                Campo2: document.getElementById('Campo2').value,
+                Campo3: document.getElementById('Campo3').value,
+                Campo4: document.getElementById('Campo4').value,
+                Campo5: document.getElementById('Campo5').value,
+                Campo6: document.getElementById('Campo6').value,
+                Campo7: document.getElementById('Campo7').value,
+                Campo8: document.getElementById('Campo8').value,
+                Campo9: document.getElementById('Campo9').value,
+                Campo10: document.getElementById('Campo10').value,
+            }
+        }
+
+        function limpar() {
+            document.querySelectorAll('input').forEach(e => e.value = '');
+            mensagem("Campos limpos.");
+        }
+
+        function mensagem(msg) {
+            document.getElementById('mensagem').innerText = msg;
+        }
+
+        function pesquisar() {
+            const id = document.getElementById('Campo1').value;
+            if (!id) {
+                mensagem('Informe o ID ou Nome para pesquisar.');
+                return;
+            }
+
+            fetch(`${url}?funcao=PesquisarDados&criterio=${id}`)
+                .then(res => res.json())
+                .then(dados => {
+                    if (dados == "Não encontrado!") {
+                        mensagem("Não encontrado!");
+                    } else {
+                        document.getElementById('Campo1').value = dados[0];
+                        document.getElementById('Campo2').value = dados[1];
+                        document.getElementById('Campo3').value = dados[2];
+                        document.getElementById('Campo4').value = dados[3];
+                        document.getElementById('Campo5').value = dados[4];
+                        document.getElementById('Campo6').value = dados[5];
+                        document.getElementById('Campo7').value = dados[6];
+                        document.getElementById('Campo8').value = dados[7];
+                        document.getElementById('Campo9').value = dados[8];
+                        document.getElementById('Campo10').value = dados[9];
+                        mensagem("Dados carregados.");
+                    }
+                });
+        }
+
+        function salvar() {
+            const dados = getCampos();
+            fetch(`${url}?funcao=SalvarDados`, {
+                method: 'POST',
+                body: JSON.stringify(dados),
+                headers: { "Content-Type": "application/json" }
+            })
+                .then(r => r.text())
+                .then(res => mensagem(res));
+        }
+
+        function editar() {
+            const dados = getCampos();
+            fetch(`${url}?funcao=EditarDados`, {
+                method: 'POST',
+                body: JSON.stringify(dados),
+                headers: { "Content-Type": "application/json" }
+            })
+                .then(r => r.text())
+                .then(res => mensagem(res));
+        }
+
+        function excluir() {
+            const id = document.getElementById('Campo1').value;
+            if (!id) {
+                mensagem('Informe o ID para excluir.');
+                return;
+            }
+            if (confirm("Tem certeza que deseja excluir?")) {
+                fetch(`${url}?funcao=ExcluirDados&criterio=${id}`)
+                    .then(r => r.text())
+                    .then(res => {
+                        mensagem(res);
+                        if (res === "Excluído!") limpar();
+                    });
+            }
+        }
+    </script>
 </body>
 </html>
