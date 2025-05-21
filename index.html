@@ -2,72 +2,60 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Comprovante de Serviço</title>
+  <title>Formulário de Serviço</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    input, textarea { display: block; margin: 10px 0; width: 100%; padding: 8px; }
-    button { padding: 10px 20px; }
+    body { font-family: Arial; margin: 20px; }
+    label { display: block; margin-top: 10px; }
+    input, textarea, button { width: 100%; padding: 8px; margin-top: 5px; }
   </style>
 </head>
 <body>
-  <h2>Formulário de Serviço</h2>
-  <form id="form">
-    <input type="text" name="cliente" placeholder="Cliente" required />
-    <input type="text" name="servico" placeholder="Serviço Executado" required />
-    <input type="number" name="valorHora" placeholder="Valor por Hora (R$)" required />
-    <input type="number" name="deslocamento" placeholder="Deslocamento (R$)" required />
-    <input type="time" name="horaEntrada" required />
-    <input type="time" name="horaSaida" required />
-    <input type="number" name="tempoAlmoco" placeholder="Tempo de Almoço (minutos)" required />
-    <button type="submit">Salvar e Imprimir</button>
+  <h1>Registro de Serviço</h1>
+  <form id="servicoForm">
+    <label>Cliente: <input type="text" name="cliente" required></label>
+    <label>Serviço Executado: <input type="text" name="servico" required></label>
+    <label>Valor por Hora (R$): <input type="number" name="valorHora" required></label>
+    <label>Deslocamento (R$): <input type="number" name="deslocamento" required></label>
+    <label>Hora de Entrada: <input type="time" name="horaEntrada" required></label>
+    <label>Hora de Saída: <input type="time" name="horaSaida" required></label>
+    <label>Tempo de Almoço (minutos): <input type="number" name="tempoAlmoco" required></label>
+    <label>Observações: <textarea name="observacoes"></textarea></label>
+    <button type="submit">Enviar</button>
   </form>
 
   <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbxVndBJrBO1dTNWxS6PU1AYSE1HT7sCRlvFNOfxbwRrVHRLeC6Qbd30jrbsXNrp6jFD/exec';
-
-    document.getElementById('form').addEventListener('submit', async function(e) {
+    const form = document.getElementById('servicoForm');
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      const form = e.target;
-      const data = {
-        cliente: form.cliente.value,
-        servico: form.servico.value,
-        valorHora: form.valorHora.value,
-        deslocamento: form.deslocamento.value,
-        horaEntrada: form.horaEntrada.value,
-        horaSaida: form.horaSaida.value,
-        tempoAlmoco: form.tempoAlmoco.value
-      };
+      const data = Object.fromEntries(new FormData(form).entries());
+
+      const comprovante = `
+        <h2>Comprovante de Serviço</h2>
+        <p><strong>Cliente:</strong> ${data.cliente}</p>
+        <p><strong>Serviço:</strong> ${data.servico}</p>
+        <p><strong>Valor Hora:</strong> R$ ${data.valorHora}</p>
+        <p><strong>Deslocamento:</strong> R$ ${data.deslocamento}</p>
+        <p><strong>Entrada:</strong> ${data.horaEntrada}</p>
+        <p><strong>Saída:</strong> ${data.horaSaida}</p>
+        <p><strong>Almoço:</strong> ${data.tempoAlmoco} minutos</p>
+        <p><strong>Observações:</strong> ${data.observacoes}</p>
+        <p><em>Emitido automaticamente</em></p>
+      `;
 
       try {
-        const res = await fetch(scriptURL, {
+        // Envia para o GAS
+        await fetch('https://script.google.com/macros/s/AKfycbxVndBJrBO1dTNWxS6PU1AYSE1HT7sCRlvFNOfxbwRrVHRLeC6Qbd30jrbsXNrp6jFD/exec', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
+          body: JSON.stringify(data),
         });
 
-        if (!res.ok) throw new Error('Erro ao salvar no Google Sheets');
-
-        const resposta = await res.json();
-        alert('Dados salvos com sucesso!');
-
-        // Abrir nova janela com o comprovante para imprimir
-        const comprovante = `
-          <html><body>
-          <h2>Comprovante de Serviço</h2>
-          <p><strong>Cliente:</strong> ${data.cliente}</p>
-          <p><strong>Serviço:</strong> ${data.servico}</p>
-          <p><strong>Valor por Hora:</strong> R$ ${data.valorHora}</p>
-          <p><strong>Deslocamento:</strong> R$ ${data.deslocamento}</p>
-          <p><strong>Hora Entrada:</strong> ${data.horaEntrada}</p>
-          <p><strong>Hora Saída:</strong> ${data.horaSaida}</p>
-          <p><strong>Tempo de Almoço:</strong> ${data.tempoAlmoco} min</p>
-          <script>window.print()</script>
-          </body></html>`;
+        // Abre comprovante para imprimir
         const w = window.open('', '', 'width=800,height=600');
         w.document.write(comprovante);
         w.document.close();
-
+        w.print();
       } catch (error) {
         alert('Erro ao enviar: ' + error.message);
       }
@@ -75,3 +63,4 @@
   </script>
 </body>
 </html>
+
