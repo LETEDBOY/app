@@ -1,65 +1,99 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Formulário de Serviço</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Agendamento LG Multserviços</title>
   <style>
-    body { font-family: Arial; margin: 20px; }
-    label { display: block; margin-top: 10px; }
-    input, textarea, button { width: 100%; padding: 8px; margin-top: 5px; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0; padding: 30px;
+      background-color: #f0f2f5;
+    }
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2 { text-align: center; color: #333; }
+    input, textarea, button {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+    button {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #218838;
+    }
+    .mensagem {
+      margin-top: 15px;
+      font-weight: bold;
+      text-align: center;
+    }
+    .erro { color: red; }
+    .sucesso { color: green; }
   </style>
 </head>
 <body>
-  <h1>Registro de Serviço</h1>
-  <form id="servicoForm">
-    <label>Cliente: <input type="text" name="cliente" required></label>
-    <label>Serviço Executado: <input type="text" name="servico" required></label>
-    <label>Valor por Hora (R$): <input type="number" name="valorHora" required></label>
-    <label>Deslocamento (R$): <input type="number" name="deslocamento" required></label>
-    <label>Hora de Entrada: <input type="time" name="horaEntrada" required></label>
-    <label>Hora de Saída: <input type="time" name="horaSaida" required></label>
-    <label>Tempo de Almoço (minutos): <input type="number" name="tempoAlmoco" required></label>
-    <label>Observações: <textarea name="observacoes"></textarea></label>
-    <button type="submit">Enviar</button>
-  </form>
+  <div class="container">
+    <h2>Agendamento de Serviço</h2>
+    <form id="formAgendamento" onsubmit="event.preventDefault(); enviarAgendamento();">
+      <input type="date" id="data" required />
+      <input type="text" id="nome" placeholder="Nome completo" required />
+      <input type="tel" id="celular" placeholder="Celular (apenas números)" pattern="[0-9]{10,11}" required />
+      <input type="email" id="email" placeholder="E-mail" required />
+      <textarea id="descricao" placeholder="Descreva o serviço..." required></textarea>
+      <button type="submit">Agendar</button>
+      <p id="mensagem" class="mensagem"></p>
+    </form>
+  </div>
 
   <script>
-    const form = document.getElementById('servicoForm');
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
+    function enviarAgendamento() {
+      const data = document.getElementById("data").value;
+      const nome = document.getElementById("nome").value.trim();
+      const celular = document.getElementById("celular").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const descricao = document.getElementById("descricao").value.trim();
+      const mensagem = document.getElementById("mensagem");
+      
+      mensagem.textContent = "Enviando...";
+      mensagem.className = "mensagem";
 
-      const data = Object.fromEntries(new FormData(form).entries());
-
-      const comprovante = `
-        <h2>Comprovante de Serviço</h2>
-        <p><strong>Cliente:</strong> ${data.cliente}</p>
-        <p><strong>Serviço:</strong> ${data.servico}</p>
-        <p><strong>Valor Hora:</strong> R$ ${data.valorHora}</p>
-        <p><strong>Deslocamento:</strong> R$ ${data.deslocamento}</p>
-        <p><strong>Entrada:</strong> ${data.horaEntrada}</p>
-        <p><strong>Saída:</strong> ${data.horaSaida}</p>
-        <p><strong>Almoço:</strong> ${data.tempoAlmoco} minutos</p>
-        <p><strong>Observações:</strong> ${data.observacoes}</p>
-        <p><em>Emitido automaticamente</em></p>
-      `;
-
-      try {
-        // Envia para o GAS
-        await fetch('https://script.google.com/macros/s/AKfycbxVndBJrBO1dTNWxS6PU1AYSE1HT7sCRlvFNOfxbwRrVHRLeC6Qbd30jrbsXNrp6jFD/exec', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
-        });
-
-        // Abre comprovante para imprimir
-        const w = window.open('', '', 'width=800,height=600');
-        w.document.write(comprovante);
-        w.document.close();
-        w.print();
-      } catch (error) {
-        alert('Erro ao enviar: ' + error.message);
-      }
-    });
+      fetch("https://script.google.com/macros/s/AKfycbxVndBJrBO1dTNWxS6PU1AYSE1HT7sCRlvFNOfxbwRrVHRLeC6Qbd30jrbsXNrp6jFD/exec", {
+        method: "POST",
+        body: JSON.stringify({ data, nome, celular, email, descricao }),
+        headers: { "Content-Type": "application/json" }
+      })
+      .then(res => res.json())
+      .then(response => {
+        if(response.status === "sucesso") {
+          mensagem.textContent = "✅ Agendamento realizado com sucesso!";
+          mensagem.className = "mensagem sucesso";
+          document.getElementById("formAgendamento").reset();
+        } else {
+          mensagem.textContent = "⚠️ " + response.mensagem;
+          mensagem.className = "mensagem erro";
+        }
+      })
+      .catch(() => {
+        mensagem.textContent = "Erro ao enviar agendamento.";
+        mensagem.className = "mensagem erro";
+      });
+    }
   </script>
 </body>
 </html>
