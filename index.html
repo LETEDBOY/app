@@ -5,44 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Agendamento LG Multserviços</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0; padding: 30px;
-      background-color: #f0f2f5;
-    }
-    .container {
-      max-width: 500px;
-      margin: 0 auto;
-      background: #fff;
-      padding: 30px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
+    body { font-family: Arial, sans-serif; margin: 0; padding: 30px; background: #f0f2f5; }
+    .container { max-width: 500px; margin: auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
     h2 { text-align: center; color: #333; }
-    input, textarea, button {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 16px;
-    }
-    button {
-      background-color: #28a745;
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-weight: bold;
-      transition: background-color 0.3s;
-    }
-    button:hover {
-      background-color: #218838;
-    }
-    .mensagem {
-      margin-top: 15px;
-      font-weight: bold;
-      text-align: center;
-    }
+    input, textarea, button { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; }
+    button { background-color: #28a745; color: white; border: none; cursor: pointer; font-weight: bold; transition: background-color 0.3s; }
+    button:hover { background-color: #218838; }
+    .mensagem { margin-top: 15px; font-weight: bold; text-align: center; }
     .erro { color: red; }
     .sucesso { color: green; }
   </style>
@@ -62,39 +31,39 @@
   </div>
 
   <script>
-    function enviarAgendamento() {
+    async function enviarAgendamento() {
       const data = document.getElementById("data").value;
       const nome = document.getElementById("nome").value.trim();
       const celular = document.getElementById("celular").value.trim();
       const email = document.getElementById("email").value.trim();
       const descricao = document.getElementById("descricao").value.trim();
       const mensagem = document.getElementById("mensagem");
-      
+
       mensagem.textContent = "Enviando...";
       mensagem.className = "mensagem";
 
-      fetch("https://script.google.com/macros/s/AKfycbxVndBJrBO1dTNWxS6PU1AYSE1HT7sCRlvFNOfxbwRrVHRLeC6Qbd30jrbsXNrp6jFD/exec", {
-        method: "POST",
-        body: JSON.stringify({ data, nome, celular, email, descricao }),
-        headers: { "Content-Type": "application/json" }
-      })
-      .then(res => res.json())
-      .then(response => {
-        if(response.status === "sucesso") {
+      try {
+        const response = await fetch("https://script.google.com/macros/s/AKfycbxVndBJrBO1dTNWxS6PU1AYSE1HT7sCRlvFNOfxbwRrVHRLeC6Qbd30jrbsXNrp6jFD/exec", {
+          method: "POST",
+          body: JSON.stringify({ data, nome, celular, email, descricao }),
+          headers: { "Content-Type": "application/json" },
+        });
+
+        const result = await response.json();
+
+        if (result.status === "sucesso") {
           mensagem.textContent = "✅ Agendamento realizado com sucesso!";
           mensagem.className = "mensagem sucesso";
           document.getElementById("formAgendamento").reset();
         } else {
-          mensagem.textContent = "⚠️ " + response.mensagem;
+          mensagem.textContent = "⚠️ " + result.mensagem;
           mensagem.className = "mensagem erro";
         }
-      })
-      .catch(() => {
-        mensagem.textContent = "Erro ao enviar agendamento.";
+      } catch (error) {
+        mensagem.textContent = "Erro ao enviar agendamento: " + error.message;
         mensagem.className = "mensagem erro";
-      });
+      }
     }
   </script>
 </body>
 </html>
-
